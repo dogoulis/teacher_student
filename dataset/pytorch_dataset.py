@@ -1,4 +1,3 @@
-from matplotlib import transforms
 from torch.utils.data import Dataset, DataLoader
 import torch
 # from PIL import Image
@@ -14,6 +13,7 @@ class dataset2(Dataset):
     def __init__(self, root_dir, dataset_path, transforms):
         self.root_dir = root_dir
         self.dataset = pd.read_csv(dataset_path)
+        
         self.imgs = self.dataset.image_path.values
         self.labels = self.dataset.label.values
         self.transforms = transforms

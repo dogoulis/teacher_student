@@ -24,13 +24,24 @@ args = parser.parse_args()
 def main():
 
     # init w&b:
-    wandb.init(project=args.project_name, config=vars(args), group=args.gropu, save_code=False)
+    wandb.init(project=args.project_name, config=vars(args), group=args.group, save_code=False, name=args.name)
 
     # init model:
-    model = timm.create_model('resnet50', pretrained=True, num_classes=1, drop_path_rate=0.1)
+    if args.model=='resnet50':
+        model = timm.create_model('resnet50', pretrained=True, num_classes=1, drop_path_rate=0.1)
+
+    elif args.model=='vit-small':
+        model = timm.create_model('vit_small_patch16_224', pretrained=True, num_classes=1, drop_path_rate=0.1)
+
+    elif args.model=='swin-tiny':
+        model = timm.create_model('swin_tiny_patch4_window7_224', pretrained=True, num_classes=1, drop_path_rate=0.1)
+    
+    else:
+        print('No model selected')
+
     model = model.to(args.device)
 
-    train_transforms = get_training_augmentations()
+    train_transforms = get_training_augmentations('geometric')
     valid_transforms = get_validation_augmentations()
 
     # set paths for training
@@ -38,13 +49,13 @@ def main():
     valid_dataset = dataset2_v2(args.valid_dir, valid_transforms)
 
     # define dataloaders
-    train_dataloader = DataLoader(train_dataset, num_workers=args.worksers, batch_size=args.batch_size, shuffle=True)
-    valid_dataloader = DataLoader(valid_dataset, num_workers=args.worksers, batch_size=args.batch_size, shuffle=False)
+    train_dataloader = DataLoader(train_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=True)
+    valid_dataloader = DataLoader(valid_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False)
 
     # optimizer
     optimizer = config_optimizers(model.parameters(), args)
     scheduler = config_schedulers(optimizer, args)
-
+    print(scheduler)
     # define criterion
     criterion = nn.BCEWithLogitsLoss()
 
@@ -68,13 +79,14 @@ def main():
             scheduler=scheduler,
             epoch=epoch,
         )
+        print('Validating....')
         val_results = validate_epoch(
-            model, dataloader=valid_dataloader, args=args, criterion=criterion
+            model, val_dataloader=valid_dataloader, args=args, criterion=criterion
         )
 
         if val_results["val_loss"] < min_loss:
             min_loss = val_results["val_loss"].copy()
-            ckpt_name = f"{wandb.run.name}_epoch_{epoch}_val_loss_{val_results['val_loss']:.4f}.pt"
+            ckpt_name = "best-ckpt.pt"
             torch.save(model.state_dict(), os.path.join(args.save_model_path, ckpt_name))
 
 
@@ -144,3 +156,6 @@ def validate_epoch(model, val_dataloader, args, criterion):
     wandb.log({'validation-accuracy': acc})
 
     return {'val_acc': acc, 'val_loss': val_loss}
+
+if __name__ == '__main__':
+    main()

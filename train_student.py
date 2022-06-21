@@ -24,15 +24,29 @@ args = parser.parse_args()
 def main():
 
     # init w&b:
-    wandb.init(project=args.project_name, config=vars(args), group=args.gropu, save_code=False)
+    wandb.init(project=args.project_name, config=vars(args), group=args.group, save_code=False, name=args.name)
 
     # init models:
-    teacher = timm.create_model('resnet50', pretrained=True, num_classes=1)
+
+    if args.model=='resnet50':
+        teacher = timm.create_model('resnet50', pretrained=True, num_classes=1)
+        student = timm.create_model('resnet50', pretrained=True, num_classes=1)
+    elif args.model=='vit-small':
+        teacher = timm.create_model('vit_small_patch16_224', pretrained=True, num_classes=1)
+        student = timm.create_model('vit_small_patch16_224', pretrained=True, num_classes=1)
+    elif args.model=='swin-tiny':
+        teacher = timm.create_model('swin_tiny_patch4_window7_224', pretrained=True, num_classes=1)
+
+    else:
+        print('NO model selected')
+  
     teacher.load_state_dict(torch.load(args.teacher_weights, map_location='cpu'))
-    student = timm.create_model('resnet50', pretrained=True, num_classes=1)
     student.load_state_dict(torch.load(args.teacher_weights, map_location='cpu'))
 
-    train_transforms = get_training_augmentations()
+    teacher = teacher.to(args.device)
+    student = student.to(args.device)
+
+    train_transforms = get_training_augmentations('geometric')
     valid_transforms = get_validation_augmentations()
 
     # set paths for training
@@ -40,8 +54,8 @@ def main():
     valid_dataset = dataset2_v2(args.valid_dir, valid_transforms)
 
     # define dataloaders
-    train_dataloader = DataLoader(train_dataset, num_workers=args.worksers, batch_size=args.batch_size, shuffle=True)
-    valid_dataloader = DataLoader(valid_dataset, num_workers=args.worksers, batch_size=args.batch_size, shuffle=False)
+    train_dataloader = DataLoader(train_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=True)
+    valid_dataloader = DataLoader(valid_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False)
 
     # optimizer
     optimizer = config_optimizers(student.parameters(), args)
@@ -71,8 +85,9 @@ def main():
             scheduler=scheduler,
             epoch=epoch,
         )
+        print('Validating....')
         val_results = validate_epoch(
-            student, dataloader=valid_dataloader, args=args, criterion=criterion
+            student, val_dataloader=valid_dataloader, args=args, criterion=criterion
         )
 
         if val_results["val_loss"] < min_loss:
@@ -174,3 +189,6 @@ def validate_epoch(model, val_dataloader, args, criterion):
     wandb.log({'validation-accuracy': acc})
 
     return {'val_acc': acc, 'val_loss': val_loss}
+
+if __name__ == '__main__':
+    main()

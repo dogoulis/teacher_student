@@ -5,10 +5,19 @@ def get_parser():
     # parser:
     parser = argparse.ArgumentParser(description="Teacher arguments")
 
+
+
+    parser.add_argument(
+        "--model",
+        type=str,
+        required=True,
+        help='Model used for the experiment.'
+    )
+
     parser.add_argument(
         "--device",
-        type=int,
-        default=0,
+        type=str,
+        default='cuda:1',
         metavar="device",
         help="device used during training (default: 0)",
     )
@@ -45,16 +54,6 @@ def get_parser():
         "--group", type=str, metavar="group", help="Grouping argument for W&B init."
     )
 
-    # dataset
-    parser.add_argument(
-        "-d",
-        "--dataset_dir",
-        type=str,
-        required=True,
-        metavar="dataset_dir",
-        help="Directory where the datasets are stored.",
-    )
-
     parser.add_argument(
         "--workers",
         default=8,
@@ -77,7 +76,7 @@ def get_parser():
         "-e",
         "--epochs",
         type=int,
-        default=10,
+        default=20,
         required=False,
         metavar="epochs",
         help="Max number of epochs to train for",
@@ -97,7 +96,7 @@ def get_parser():
         "-lr",
         "--learning_rate",
         type=float,
-        default=1e-3,
+        default=1e-4,
         required=False,
         metavar="learning_rate",
         help="Learning rate of the optimizer (default: 1e-3).",
@@ -125,7 +124,7 @@ def get_parser():
         "-sch",
         "--scheduler",
         type=str,
-        default="step_rl",
+        default="steplr",
         required=False,
         metavar="scheduler",
         help="Scheduler to use during training (default: steprl).",

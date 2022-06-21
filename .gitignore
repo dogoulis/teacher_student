@@ -1,0 +1,7 @@
+data/
+*.ipynb
+*.txt
+checkpoints/
+dataset/__pycache__
+utils/__pycache__
+wandb/
