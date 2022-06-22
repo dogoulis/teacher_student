@@ -36,6 +36,7 @@ def main():
         student = timm.create_model('vit_small_patch16_224', pretrained=True, num_classes=1)
     elif args.model=='swin-tiny':
         teacher = timm.create_model('swin_tiny_patch4_window7_224', pretrained=True, num_classes=1)
+        student = timm.create_model('swin_tiny_patch4_window7_224', pretrained=True, num_classes=1)
 
     else:
         print('NO model selected')
@@ -89,7 +90,6 @@ def main():
         val_results = validate_epoch(
             student, val_dataloader=valid_dataloader, args=args, criterion=criterion
         )
-
         if val_results["val_loss"] < min_loss:
             min_loss = val_results["val_loss"].copy()
             ckpt_name = f"{wandb.run.name}_epoch_{epoch}_val_loss_{val_results['val_loss']:.4f}.pt"
@@ -129,15 +129,16 @@ def train_student(teacher, student, train_dataloader, args, optimizer, criterion
             repr_loss = l2_loss(student_features, teacher_features)
 
         # without spatial info:
-        student_features_pooled = avg_pool(student_features)
-        teacher_features_pooled = avg_pool(teacher_features)
+        else:
+            student_features_pooled = avg_pool(student_features)
+            teacher_features_pooled = avg_pool(teacher_features)
 
-        repr_loss = l2_loss(student_features_pooled, teacher_features_pooled)
+            repr_loss = l2_loss(student_features_pooled, teacher_features_pooled)
 
         # outputs for binary classification
         outputs = student(x)
 
-        loss = args.alpha*repr_loss + (1-args.alpha)*criterion(y, outputs)
+        loss = args.alpha*repr_loss + (1.0-args.alpha)*criterion(outputs, y)
         loss.backward()
         optimizer.step()
 
