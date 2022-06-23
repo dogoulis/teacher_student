@@ -92,7 +92,7 @@ def main():
         )
         if val_results["val_loss"] < min_loss:
             min_loss = val_results["val_loss"].copy()
-            ckpt_name = f"{wandb.run.name}_epoch_{epoch}_val_loss_{val_results['val_loss']:.4f}.pt"
+            ckpt_name = "best-ckpt.pt"
             torch.save(student.state_dict(), os.path.join(args.save_model_path, ckpt_name))
 
 
