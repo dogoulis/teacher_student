@@ -71,10 +71,17 @@ def main():
                config=vars(args), group=args.group)
 
     # initialize model:
-    model = timm.create_model('resnet50', num_classes=1)
-
+    if args.model == 'resnet50':
+        model = timm.create_model('resnet50', num_classes=1, pretrained=True)
+    elif args.model == 'swin-tiny':
+        model = timm.create_model('swin_tiny_patch4_window7_224', num_classes=1, pretrained=True)
+    elif args.model == 'vit-small':
+        model = timm.create_model('vit_small_patch16_224', num_classes=1, pretrained=True)
+    else:
+        print('No selected model')
     # load weights:
-    model.load_state_dict(torch.load(args.weights_dir, map_location='cpu'))
+    if args.student_weights:
+        model.load_state_dict(torch.load(args.student_weights, map_location='cpu'))
 
     model = model.eval().to(args.device)
 
@@ -85,7 +92,7 @@ def main():
     test_dataset = pytorch_dataset.dataset2_v2(args.test_dir, transforms)
 
     # define data loaders:
-    test_dataloader = DataLoader(test_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False)
+    test_dataloader = DataLoader(test_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False, pin_memory=True)
 
     # set the criterion:
     criterion = nn.BCEWithLogitsLoss()

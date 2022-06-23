@@ -49,8 +49,8 @@ def main():
     valid_dataset = dataset2_v2(args.valid_dir, valid_transforms)
 
     # define dataloaders
-    train_dataloader = DataLoader(train_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=True)
-    valid_dataloader = DataLoader(valid_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False)
+    train_dataloader = DataLoader(train_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=True, pin_memory=True)
+    valid_dataloader = DataLoader(valid_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False, pin_memory=True)
 
     # optimizer
     optimizer = config_optimizers(model.parameters(), args)
