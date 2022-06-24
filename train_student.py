@@ -27,7 +27,6 @@ def main():
     wandb.init(project=args.project_name, config=vars(args), group=args.group, save_code=False, name=args.name)
 
     # init models:
-
     if args.model=='resnet50':
         teacher = timm.create_model('resnet50', pretrained=True, num_classes=1)
         student = timm.create_model('resnet50', pretrained=True, num_classes=1)
@@ -116,20 +115,42 @@ def train_student(teacher, student, train_dataloader, args, optimizer, criterion
 
         optimizer.zero_grad()
 
-        # forward features
-        student_features = student.forward_features(x)
-        with torch.no_grad():
-            teacher_features = teacher.forward_features(x)
-
 
         # representation loss
         # first with spatial info:
-
         if args.volume_loss:
+            if args.model == 'swin-tiny':
+                student.features = swin_features.__get__(student)
+                teacher.features = swin_features.__get__(teacher)
+
+                student_features = student.features(x)
+                teacher_features = teacher.features(x)
+
+            elif args.model == 'vit-small':
+                student.features = vit_features.__get__(student)
+                teacher.features = vit_features.__get__(teacher)
+
+                student_features = student.features(x)
+                teacher_features = teacher.features(x)
+                print(student_features.shape)
+
+            elif args.model == 'resnet50':
+                student_features = student.forward_features(x)
+                teacher_features = teacher.forward_features(x)
+
+            else:
+                break
+            
+            # calculate loss:
             repr_loss = l2_loss(student_features, teacher_features)
 
         # without spatial info:
         else:
+            # forward features
+            student_features = student.forward_features(x)
+            with torch.no_grad():
+                teacher_features = teacher.forward_features(x)
+
             student_features_pooled = avg_pool(student_features)
             teacher_features_pooled = avg_pool(teacher_features)
 
@@ -190,6 +211,25 @@ def validate_epoch(model, val_dataloader, args, criterion):
     wandb.log({'validation-accuracy': acc})
 
     return {'val_acc': acc, 'val_loss': val_loss}
+
+
+def swin_features(self, x):
+    x = self.patch_embed(x)
+    if self.absolute_pos_embed is not None:
+        x = x + self.absolute_pos_embed
+    x = self.pos_drop(x)
+    x = self.layers(x)
+    x = self.norm(x)
+    return x
+
+def vit_features(self, x):
+    x = self.patch_embed(x)
+    if self.cls_token is not None:
+        x = torch.cat((self.cls_token.expand(x.shape[0], -1, -1), x), dim=1)
+    x = self.pos_drop(x + self.pos_embed)
+    x = self.blocks(x)
+    x = self.norm(x)
+    return x
 
 if __name__ == '__main__':
     main()
