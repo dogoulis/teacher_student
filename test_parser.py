@@ -66,6 +66,14 @@ def get_parser():
     parser.add_argument(
         "--student_weights",
         type=str,
+        metavar="student_weights",
+        required=False,
+        help="Directory of student weights"
+    )
+
+    parser.add_argument(
+        "--teacher_weights",
+        type=str,
         metavar="teacher_weights",
         required=False,
         help="Directory of teacher weights"

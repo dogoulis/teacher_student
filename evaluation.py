@@ -82,6 +82,8 @@ def main():
     # load weights:
     if args.student_weights:
         model.load_state_dict(torch.load(args.student_weights, map_location='cpu'))
+    if args.teacher_weights:
+        model.load_state_dict(torch.load(args.teacher_weights, map_location='cpu'))
 
     model = model.eval().to(args.device)
 
