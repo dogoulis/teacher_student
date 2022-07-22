@@ -17,7 +17,7 @@ def get_parser():
         type=str,
         default='cuda:0',
         metavar="device",
-        help="device used during training (default: 0)",
+        help="device used during training (default: 1)",
     )
 
     parser.add_argument(
@@ -186,9 +186,32 @@ def get_parser():
         "--alpha",
         type=float,
         metavar='alpha',
-        default=0.5,
+        default=0.8,
         help="Alpha value for weighting loss"
     )
+
+    parser.add_argument(
+        "--pool",
+        metavar='pool',
+        type=str,
+        help='Argument for pooling'
+    )
+    
+    parser.add_argument(
+        "--kd_loss",
+        metavar='kd_loss',
+        type=str,
+        help='Flag for using Knowledge distillation loss by Hinton et all'
+    )
+
+    parser.add_argument(
+        '--aug_type',
+        default='geometric',
+        metavar='aug_type',
+        type=str,
+        help='augmentation type'
+    )
+
     return parser
 
 

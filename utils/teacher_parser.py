@@ -166,6 +166,14 @@ def get_parser():
         help='saving directory'
     )
 
+    parser.add_argument(
+        '--aug_type',
+        default='geometric',
+        metavar='aug_type',
+        type=str,
+        help='augmentation type'
+    )
+
     return parser
 
 

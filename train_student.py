@@ -6,6 +6,7 @@ from torch import nn
 import os
 from tqdm import tqdm
 from torch.utils.data.dataloader import DataLoader
+import torch.nn.functional as F
 
 
 from utils.student_parser import get_parser
@@ -41,12 +42,13 @@ def main():
         print('NO model selected')
   
     teacher.load_state_dict(torch.load(args.teacher_weights, map_location='cpu'))
-    student.load_state_dict(torch.load(args.teacher_weights, map_location='cpu'))
+    #student.load_state_dict(torch.load(args.teacher_weights, map_location='cpu'))
 
     teacher = teacher.to(args.device)
     student = student.to(args.device)
 
-    train_transforms = get_training_augmentations('geometric')
+    aug_type = args.aug_type
+    train_transforms = get_training_augmentations(aug_type=aug_type)
     valid_transforms = get_validation_augmentations()
 
     # set paths for training
@@ -132,8 +134,8 @@ def train_student(teacher, student, train_dataloader, args, optimizer, criterion
 
                 student_features = student.features(x)
                 teacher_features = teacher.features(x)
-                print(student_features.shape)
 
+                
             elif args.model == 'resnet50':
                 student_features = student.forward_features(x)
                 teacher_features = teacher.forward_features(x)
@@ -150,11 +152,13 @@ def train_student(teacher, student, train_dataloader, args, optimizer, criterion
             student_features = student.forward_features(x)
             with torch.no_grad():
                 teacher_features = teacher.forward_features(x)
+            if args.pool:
+                student_features_pooled = avg_pool(student_features)
+                teacher_features_pooled = avg_pool(teacher_features)
 
-            student_features_pooled = avg_pool(student_features)
-            teacher_features_pooled = avg_pool(teacher_features)
-
-            repr_loss = l2_loss(student_features_pooled, teacher_features_pooled)
+                repr_loss = l2_loss(student_features_pooled, teacher_features_pooled)
+            else: 
+                repr_loss = l2_loss(student_features, teacher_features)
 
         # outputs for binary classification
         outputs = student(x)
@@ -230,6 +234,7 @@ def vit_features(self, x):
     x = self.blocks(x)
     x = self.norm(x)
     return x
+
 
 if __name__ == '__main__':
     main()

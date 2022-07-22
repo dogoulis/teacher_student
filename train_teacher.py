@@ -41,7 +41,8 @@ def main():
 
     model = model.to(args.device)
 
-    train_transforms = get_training_augmentations('geometric')
+    aug_type = args.aug_type
+    train_transforms = get_training_augmentations(aug_type=aug_type)
     valid_transforms = get_validation_augmentations()
 
     # set paths for training
