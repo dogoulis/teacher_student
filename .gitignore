@@ -6,3 +6,8 @@ dataset/__pycache__
 utils/__pycache__
 wandb/
 __pycache__/
+trueFace_data/
+generated_images/
+res_checkpoints/
+scripts/
+trunc_test/

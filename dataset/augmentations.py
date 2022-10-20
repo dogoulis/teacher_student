@@ -16,7 +16,7 @@ def get_training_augmentations(aug_type, resize_size=256, crop_size=224):
 
     if "soft" in aug_type:
         pass
-    elif "Wang" in aug_type:
+    elif "wang" in aug_type:
         # add Wang augmentations pipeline transformed into albumentations:
         augmentations.extend(
             [

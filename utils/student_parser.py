@@ -17,7 +17,7 @@ def get_parser():
         type=str,
         default='cuda:0',
         metavar="device",
-        help="device used during training (default: 1)",
+        help="device used during training (default: 0)",
     )
 
     parser.add_argument(

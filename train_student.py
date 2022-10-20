@@ -37,6 +37,9 @@ def main():
     elif args.model=='swin-tiny':
         teacher = timm.create_model('swin_tiny_patch4_window7_224', pretrained=True, num_classes=1)
         student = timm.create_model('swin_tiny_patch4_window7_224', pretrained=True, num_classes=1)
+    elif args.model=='xception':
+        teacher = timm.create_model('xception', pretrained=True, num_classes=1)
+        student = timm.create_model('xception', pretrained=True, num_classes=1)
 
     else:
         print('NO model selected')
