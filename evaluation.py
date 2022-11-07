@@ -57,11 +57,11 @@ def testing(model, dataloader, criterion):
     for x, y in tqdm(dataloader):
         x = x.to(args.device)
         y = y.to(args.device).unsqueeze(1)
-        outputs = model(x).unsqueeze(1) # if enemble then add .unsqueeze(1)
+        outputs = model(x) # if enemble then add .unsqueeze(1)
         loss = criterion(outputs, y) 
 
         running_loss.append(loss.cpu().numpy())
-        outputs = torch.sigmoid(outputs)
+        outputs = torch.sigmoid(outputs) # if ensemble then comment this out
         y_true.append(y.squeeze(1).cpu().int())
         y_pred.append(outputs.squeeze(1).cpu())
     wandb.log({'Loss': np.mean(running_loss)})
@@ -140,7 +140,7 @@ def main():
     transforms = augmentations.get_validation_augmentations()
 
     # define test dataset:
-    test_dataset = pytorch_dataset.dataset2_v2(args.test_dir, transforms)
+    test_dataset = pytorch_dataset.dataset2_v22(args.test_dir, transforms)
 
     # define data loaders:
     test_dataloader = DataLoader(test_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False, pin_memory=True)

@@ -9,7 +9,7 @@ from torch.utils.data.dataloader import DataLoader
 
 
 from utils.teacher_parser import get_parser
-from dataset.pytorch_dataset import dataset2_v2
+from dataset.pytorch_dataset import dataset2_v22
 from dataset.augmentations import get_training_augmentations, get_validation_augmentations
 from utils.configurators import (
     config_optimizers,
@@ -50,8 +50,8 @@ def main():
     valid_transforms = get_validation_augmentations()
 
     # set paths for training
-    train_dataset = dataset2_v2(args.train_dir, train_transforms)
-    valid_dataset = dataset2_v2(args.valid_dir, valid_transforms)
+    train_dataset = dataset2_v22(args.train_dir, train_transforms)
+    valid_dataset = dataset2_v22(args.valid_dir, valid_transforms)
 
     # define dataloaders
     train_dataloader = DataLoader(train_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=True, pin_memory=True)
